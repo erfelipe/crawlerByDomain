@@ -1,0 +1,5 @@
+{
+    "editor.fontSize": 16,
+    "editor.fontFamily": "'JetBrains Mono', Menlo, Monaco, 'Courier New', monospace",
+    "python.pythonPath": "venv/bin/python"
+}
