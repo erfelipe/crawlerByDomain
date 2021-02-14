@@ -14,11 +14,18 @@ def urlNotVisited(url):
     return url not in queueUrlsVisited
 
 def contentFromUrl(url):
-    data = requests.get(url)
-    if (data.status_code == requests.codes.ok):
-        return data.text
+    if (utils.urlWellFormat(url)):
+        data = requests.Response
+        try:
+            data = requests.get(url)
+        except requests.RequestException as e:
+            data.status_code = 400
+        if (data.status_code == requests.codes.ok):
+            return data.text
+        else:
+            return ""
     else:
-        return ""
+            return ""
 
 def keyswordsInDocument(data):
     keys = []
@@ -69,5 +76,5 @@ def processQueue(begin):
 
 if __name__ == "__main__":
     utils.initialize(queueUrlsToVisit)
-    keywordsList = utils.carregarArquivoComoArray(consts.ARQ_KEYWORDS)
+    keywordsList = utils.loadFileLikeArray(consts.ARQ_KEYWORDS)
     processQueue(begin)
