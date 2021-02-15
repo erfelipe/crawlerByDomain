@@ -17,7 +17,7 @@ def contentFromUrl(url):
     if (utils.urlWellFormat(url)):
         data = requests.Response
         try:
-            data = requests.get(url)
+            data = requests.get(url, verify=False, timeout=10)
         except requests.RequestException as e:
             data.status_code = 400
         if (data.status_code == requests.codes.ok):
@@ -56,13 +56,15 @@ def processUrl(url):
         keywordsFound = (keyswordsInDocument(page))
         if (len(keywordsFound) > 0): 
             allUrls = allUrlsFromDocument(page)
-            utils.insertDataInDB(url, page, keywordsFound)
+            utils.insertDataInDB(url, page, keywordsFound) 
+        else:
+            print("# URL sem keywords: ", url)
     # se tiver keywords:
     # - lista todas as urls e cadastra na fila a visitar
     # - armazena: url, conteudo, quais keyswords foram encontradas
     # coloca endereco na fila de visitadas
     else: 
-        print(url, " já visitada.")
+        print("* URL já visitada: ", url)
     queueUrlsVisited.append(url)
     addUrlsToVisit(allUrls)
 
@@ -72,9 +74,11 @@ def processQueue(begin):
     while (begin < limiteVisitas) and (not queueUrlsToVisit.empty()):
         begin += 1
         url = queueUrlsToVisit.get()
+        print("! Processando: ", url)
         processUrl(url) 
 
 if __name__ == "__main__":
     utils.initialize(queueUrlsToVisit)
     keywordsList = utils.loadFileLikeArray(consts.ARQ_KEYWORDS)
+    queueUrlsVisited = utils.loadUrlsVisited(consts.ARQ_DATABASE)
     processQueue(begin)

@@ -29,17 +29,19 @@ def createDataBase():
                         id integer primary key autoincrement,
                         url text not null,
                         page text not null,
-                        keys text not null )
-                    """)
-    conn.commit()
+                        keys text not null,
+                        quantkeys integer not null )
+                    """) 
+    conn.commit() 
     conn.close() 
 
 def insertDataInDB(url, page, keywordsFound):
     keys = ', '.join(keywordsFound)
+    quantk =  len(keywordsFound) 
     conn = sqlite3.connect(consts.ARQ_DATABASE) 
     cursor = conn.cursor() 
-    cursor.execute("""  INSERT INTO crawlerByDomain (url, page, keys) 
-                        VALUES (?, ?, ? )""", (url, page, keys, ))
+    cursor.execute("""  INSERT INTO crawlerByDomain (url, page, keys,quantkeys) 
+                        VALUES (?, ?, ?, ? ) """, (url, page, keys, quantk, ))
     conn.commit()
     conn.close() 
 
@@ -74,3 +76,18 @@ def urlWellFormat(url):
         return all([result.scheme, result.netloc, result.path])
     except:
         return False
+
+def loadUrlsVisited(BD):
+    conn = sqlite3.connect(BD) 
+    cursor = conn.cursor() 
+    cursor.execute("""  select cbd.url 
+                        from crawlerByDomain cbd  
+                    """)
+    result = cursor.fetchall()
+    urls = []
+    for address in result: 
+        urls.append(address) 
+    conn.commit()
+    conn.close() 
+    return urls
+
