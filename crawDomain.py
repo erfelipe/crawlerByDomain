@@ -2,10 +2,10 @@ import queue
 import utils
 import requests
 import consts
-from urlextract import URLExtract 
+import colors
 
 begin = 0
-limiteVisitas = 9000 
+limiteVisitas = 3000
 keywordsList = []
 queueUrlsToVisit = queue.Queue() 
 queueUrlsVisited = []
@@ -13,16 +13,28 @@ queueUrlsVisited = []
 def urlNotVisited(url):
     return url not in queueUrlsVisited
 
+def isDataText(header): 
+    try:
+        cabecalho = header['content-type']
+        if ('ASCII'.lower() in cabecalho.lower()) or ('ANSI'.lower() in cabecalho.lower()) or ('8859'.lower() in cabecalho.lower()) or ('UTF'.lower() in cabecalho.lower()) or ('text'.lower() in cabecalho.lower()) or ('html'.lower() in cabecalho.lower()) :
+            return True
+        else:
+            return False
+    except:
+        return False
+
 def contentFromUrl(url):
     if (utils.urlWellFormat(url)):
         data = requests.Response
         try:
-            data = requests.get(url, verify=False, timeout=10)
-        except requests.RequestException as e:
-            data.status_code = 400
-        if (data.status_code == requests.codes.ok):
-            return data.text
+            data = requests.get(url, verify=False, timeout=5) 
+        except requests.RequestException as e: 
+            data.status_code = 400 
+        if (data.status_code == requests.codes.ok) and (isDataText(data.headers)): 
+            return data.text 
         else:
+            print(colors.bcolors.FAIL + "@ Request NÃO É TEXTO: " + url + colors.bcolors.ENDC) 
+            # print(colors.bcolors.FAIL + "@ " + data.headers['content-type'] + colors.bcolors.ENDC)
             return ""
     else:
             return ""
@@ -33,11 +45,6 @@ def keyswordsInDocument(data):
         if k in data:
             keys.append(k)
     return keys
-
-def allUrlsFromDocument(data):
-    extractor = URLExtract()
-    urls = extractor.find_urls(data)
-    return urls
 
 def addUrlsToVisit(urls):
     for url in urls:
@@ -54,19 +61,22 @@ def processUrl(url):
     if (urlNotVisited(url)):
         page = contentFromUrl(url)
         keywordsFound = (keyswordsInDocument(page))
+        allUrls = utils.allUrlsFromDocument(page) 
+        # allUrls = utils.allUrlsFromPage(page)
         if (len(keywordsFound) > 0): 
-            allUrls = allUrlsFromDocument(page)
+            print(colors.bcolors.OKGREEN + "@ URL adicionada: ", url + colors.bcolors.ENDC) 
             utils.insertDataInDB(url, page, keywordsFound) 
         else:
-            print("# URL sem keywords: ", url)
+            print(colors.bcolors.FAIL + "# URL sem keywords: ", url + colors.bcolors.ENDC) 
     # se tiver keywords:
     # - lista todas as urls e cadastra na fila a visitar
     # - armazena: url, conteudo, quais keyswords foram encontradas
     # coloca endereco na fila de visitadas
     else: 
-        print("* URL já visitada: ", url)
+        print(colors.bcolors.OKCYAN + "* URL já visitada: ", url + colors.bcolors.ENDC) 
     queueUrlsVisited.append(url)
     addUrlsToVisit(allUrls)
+    allUrls.clear()
 
 def processQueue(begin):
     """ Process the queue with seeds and prior address
@@ -74,11 +84,18 @@ def processQueue(begin):
     while (begin < limiteVisitas) and (not queueUrlsToVisit.empty()):
         begin += 1
         url = queueUrlsToVisit.get()
-        print("! Processando: ", url)
-        processUrl(url) 
+        if (utils.isFileValid(url) and (url is not None)):
+            print(colors.bcolors.OKBLUE + "! Processando: " + str(begin) + " - " + url + colors.bcolors.ENDC) 
+            processUrl(url) 
+        else:
+            print(colors.bcolors.WARNING + "% Arquivo inválido: " + url + colors.bcolors.ENDC) 
+    utils.saveQueueToVisit(queueUrlsToVisit)
+    utils.saveUrlsVisited(queueUrlsVisited) 
 
 if __name__ == "__main__":
-    utils.initialize(queueUrlsToVisit)
-    keywordsList = utils.loadFileLikeArray(consts.ARQ_KEYWORDS)
-    queueUrlsVisited = utils.loadUrlsVisited(consts.ARQ_DATABASE)
-    processQueue(begin)
+    # utils.initialize(queueUrlsToVisit)
+    # keywordsList = utils.loadFileLikeArray(consts.ARQ_KEYWORDS)
+    # queueUrlsVisited = utils.loadUrlsVisited(consts.ARQ_DATABASE)
+    # processQueue(begin)
+    utils.exportDataBaseToXlsx(consts.ARQ_DATABASE) 
+    
