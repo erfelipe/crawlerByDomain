@@ -4,6 +4,8 @@ import crawDomain as craw
 import consts
 import sqlite3
 import unicodedata 
+import os
+from wordcloud import WordCloud 
 from bs4 import BeautifulSoup
 from urlextract import URLExtract 
 from openpyxl import Workbook 
@@ -48,6 +50,18 @@ def insertDataInDB(url, page, keywordsFound):
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ? ) """, (domain, url, page, keys, quantk, titleFromPage, keysFromPage, langFromPage, descFromPage, authorFromPage,))
     conn.commit()
     conn.close() 
+
+def repeteString(texto, n):
+    """ Repete uma string n vezes e retorna sua concatenacao em nova string
+
+    Args:
+        texto (str): texto a ser repetido
+        n (int): numero de vezes a ser repetida
+
+    Returns:
+        str: nova string com o numero de repeticao
+    """    
+    return ' '.join([texto for i in range(n)])
 
 def fillKeywords():
     lista = open(consts.ARQ_KEYWORDS, 'r').read().splitlines()
@@ -195,3 +209,67 @@ def exportDataBaseToXlsx(BD):
     for line in result: 
         ws0.append([line[0], line[1], line[2], line[3], line[4], line[5], line[6], line[7], line[8], line[9], line[10]])
     wb.save(consts.ARQ_XLSRESULT)
+
+def countKeyWordsFrmDB():
+    wb = Workbook() 
+    ws0 = wb.active 
+    ws0.title = 'Quant-Keywords'
+    ws1 = wb.create_sheet(title='Quant-Key-FromPage')
+    conn = sqlite3.connect(consts.ARQ_DATABASE) 
+    cursor = conn.cursor() 
+    cursor.execute("""  select keys, keysFromPage 
+                        from crawlerByDomain cbd  
+                    """)
+    result = cursor.fetchall()
+    conn.commit()
+    conn.close() 
+    colection = {}
+    colectionFromPage = {}
+    for keys in result:
+        if (keys[0]):
+            terms = keys[0].split(",")
+            for term in terms:
+                termNoSpace = term.strip()
+                if termNoSpace in colection:
+                    value = colection.get(termNoSpace)
+                    colection[termNoSpace] = value + 1
+                else:
+                    colection[termNoSpace] = 1
+            terms.clear()
+        if (keys[1]):
+            terms = keys[1].split(",")
+            for term in terms:
+                termNoSpace = term.strip()
+                if termNoSpace in colectionFromPage: 
+                    value = colectionFromPage.get(termNoSpace) 
+                    colectionFromPage[termNoSpace] = value + 1 
+                else:
+                    colectionFromPage[termNoSpace] = 1 
+            terms.clear()
+
+    for chave, valor in colection.items():
+        ws0.append([chave, valor]) 
+
+    for chave, valor in colectionFromPage.items():
+        ws1.append([chave, valor]) 
+    
+    saveTxtToCloud(colection)
+
+    wb.save(consts.ARQ_XLSQUANTKEYS)
+
+def saveTxtToCloud(colect):
+    str = ""
+    for chave, valor in colect.items():
+        str = str + ' '.join([chave for i in range(valor)]) + ' '
+    str = str.strip()
+    with open(consts.ARQ_TXTFORCLOUD, 'w', encoding="utf-8") as text_file:
+        text_file.write(str)
+
+def madeCloudOfWords():
+    d = os.path.dirname(__file__) if "__file__" in locals() else os.getcwd()
+    text = open(os.path.join(d, consts.ARQ_TXTFORCLOUD)).read()
+
+    # Generate a word cloud image
+    wordcloud = WordCloud(width=1600, height=800, background_color="white", repeat=False, collocations=False)
+    wordcloud.generate(text)
+    wordcloud.to_file("keywordsFromVocabulary.png")
