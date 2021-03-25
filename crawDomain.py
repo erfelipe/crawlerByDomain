@@ -97,5 +97,6 @@ if __name__ == "__main__":
     # keywordsList = utils.loadFileLikeArray(consts.ARQ_KEYWORDS)
     # queueUrlsVisited = utils.loadUrlsVisited(consts.ARQ_DATABASE)
     # processQueue(begin)
-    utils.exportDataBaseToXlsx(consts.ARQ_DATABASE) 
-    
+    # utils.exportDataBaseToXlsx(consts.ARQ_DATABASE) 
+    utils.countKeyWordsFrmDB() 
+    utils.madeCloudOfWords()
