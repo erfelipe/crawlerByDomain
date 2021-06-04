@@ -15,11 +15,8 @@ keywords = []
 caracteresAcentuados = ["á", "à", "ã", "é", "í", "ô", "ç"]
 
 def dropDataBase():
-    conn = sqlite3.connect(consts.ARQ_DATABASE) 
-    cursor = conn.cursor() 
-    cursor.execute(""" DROP TABLE if exists crawlerByDomain """) 
-    conn.commit() 
-    conn.close() 
+    if (os.path.exists(consts.ARQ_DATABASE)):
+        os.remove(consts.ARQ_DATABASE)
 
 def createDataBase():
     conn = sqlite3.connect(consts.ARQ_DATABASE) 
