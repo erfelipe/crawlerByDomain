@@ -8,3 +8,7 @@ ARQ_DATABASE = "data.sqlite"
 ARQ_XLSRESULT = "bd-result.xlsx"
 ARQ_XLSQUANTKEYS = "quant_keys.xlsx"
 ARQ_TXTFORCLOUD = "keys-for-cloud.txt" 
+
+# Const
+VISIT_LIMIT = 3000
+

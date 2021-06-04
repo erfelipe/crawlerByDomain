@@ -1,4 +1,5 @@
 # from sqlite3.dbapi2 import Cursor
+from genericpath import exists
 from urllib.parse import urlparse
 import crawDomain as craw 
 import consts
@@ -12,6 +13,13 @@ from openpyxl import Workbook
 
 keywords = []
 caracteresAcentuados = ["á", "à", "ã", "é", "í", "ô", "ç"]
+
+def dropDataBase():
+    conn = sqlite3.connect(consts.ARQ_DATABASE) 
+    cursor = conn.cursor() 
+    cursor.execute(""" DROP TABLE if exists crawlerByDomain """) 
+    conn.commit() 
+    conn.close() 
 
 def createDataBase():
     conn = sqlite3.connect(consts.ARQ_DATABASE) 
@@ -51,6 +59,22 @@ def insertDataInDB(url, page, keywordsFound):
     conn.commit()
     conn.close() 
 
+def cleanFinalFiles(): 
+    newResultFiles = input("Clean result files for this process? (Y/N)").lower()
+    if (newResultFiles == 'y'):
+        if (exists("bd-result.xlsx")):
+            os.remove("bd-result.xlsx")
+        if (exists("keywordsFromVocabulary.png")):
+            os.remove("keywordsFromVocabulary.png")
+        if (exists("keys-for-cloud.txt")):
+            os.remove("keys-for-cloud.txt")
+        if (exists("quant_keys.xlsx")):
+            os.remove("quant_keys.xlsx")
+        if (exists("urls-to-visit.txt")):
+            os.remove("urls-to-visit.txt")
+        if (exists("urls-visited.txt")):
+            os.remove("urls-visited.txt")
+
 def repeteString(texto, n):
     """ Repete uma string n vezes e retorna sua concatenacao em nova string
 
@@ -75,7 +99,24 @@ def fillQueueWithSeeds(queueUrlsVisitar):
         queueUrlsVisitar.put(seed)
 
 def initialize(queueUrlsVisitar):
-    createDataBase()
+    newDB = input("Create a new Dabatabase for this process? (Y/N)").lower()
+    if (newDB == 'y'):
+        dropDataBase()
+        createDataBase()
+    newResultFiles = input("Create a new result files for analysis for this process? (Y/N)").lower()
+    if (newResultFiles == 'y'):
+        if (os.path.exists("quant_keys.xlsx")):
+            os.remove("quant_keys.xlsx")
+        if (os.path.exists("bd-result.xlsx")):
+            os.remove("bd-result.xlsx")
+        if (os.path.exists("keywordsFromVocabulary.png")):
+            os.remove("keywordsFromVocabulary.png")
+        if (os.path.exists("urls-to-visit.txt")):
+            os.remove("urls-to-visit.txt")
+        if (os.path.exists("urls-visited.txt")):
+            os.remove("urls-visited.txt")
+        if (os.path.exists("keys-for-cloud.txt")):
+            os.remove("keys-for-cloud.txt")
     fillKeywords() 
     initQueueToVisit(queueUrlsVisitar)
 
@@ -139,9 +180,10 @@ def saveQueueToVisit(urls):
 
 def loadQueueToVisit():
     resp = []
-    with open(consts.ARQ_URLSTOVISIT, "r") as f:
-        for line in f:
-            resp.append(line.strip())
+    if (os.path.exists(consts.ARQ_URLSTOVISIT)):
+        with open(consts.ARQ_URLSTOVISIT, "r") as f:
+            for line in f:
+                resp.append(line.strip())
     return resp
 
 def initQueueToVisit(queueUrlsVisitar):
@@ -177,6 +219,14 @@ def extractMetaFromPage(page):
     return metas
 
 def allUrlsFromDocument(data):
+    """ Extrai urls da pagina
+
+    Args:
+        data (str): Pagina web
+
+    Returns:
+        list: urls encontradas
+    """    
     extractor = URLExtract()
     urls = []
     try:
@@ -186,6 +236,15 @@ def allUrlsFromDocument(data):
         return urls
 
 def allUrlsFromPage(page):
+    """ Deprecated
+        Extrai urls da pagina 
+
+    Args:
+        page (str): Pagina web
+
+    Returns:
+        list: urls encontradas
+    """    
     soup = BeautifulSoup(page, "html.parser")
     links = []
     for link in soup.find_all('a'):

@@ -4,8 +4,7 @@ import requests
 import consts
 import colors
 
-begin = 0
-limiteVisitas = 3000
+counter = 0
 keywordsList = []
 queueUrlsToVisit = queue.Queue() 
 queueUrlsVisited = []
@@ -68,24 +67,24 @@ def processUrl(url):
             utils.insertDataInDB(url, page, keywordsFound) 
         else:
             print(colors.bcolors.FAIL + "# URL sem keywords: ", url + colors.bcolors.ENDC) 
+    else: 
+        print(colors.bcolors.OKCYAN + "* URL já visitada: ", url + colors.bcolors.ENDC) 
     # se tiver keywords:
     # - lista todas as urls e cadastra na fila a visitar
     # - armazena: url, conteudo, quais keyswords foram encontradas
-    # coloca endereco na fila de visitadas
-    else: 
-        print(colors.bcolors.OKCYAN + "* URL já visitada: ", url + colors.bcolors.ENDC) 
+    # - coloca endereco na fila de visitadas
     queueUrlsVisited.append(url)
     addUrlsToVisit(allUrls)
     allUrls.clear()
 
-def processQueue(begin):
+def processQueue(counter):
     """ Process the queue with seeds and prior address
     """    
-    while (begin < limiteVisitas) and (not queueUrlsToVisit.empty()):
-        begin += 1
+    while (counter < consts.VISIT_LIMIT) and (not queueUrlsToVisit.empty()):
+        counter += 1
         url = queueUrlsToVisit.get()
         if (utils.isFileValid(url) and (url is not None)):
-            print(colors.bcolors.OKBLUE + "! Processando: " + str(begin) + " - " + url + colors.bcolors.ENDC) 
+            print(colors.bcolors.OKBLUE + "! Processando: " + str(counter) + " - " + url + colors.bcolors.ENDC) 
             processUrl(url) 
         else:
             print(colors.bcolors.WARNING + "% Arquivo inválido: " + url + colors.bcolors.ENDC) 
@@ -93,10 +92,10 @@ def processQueue(begin):
     utils.saveUrlsVisited(queueUrlsVisited) 
 
 if __name__ == "__main__":
-    # utils.initialize(queueUrlsToVisit)
-    # keywordsList = utils.loadFileLikeArray(consts.ARQ_KEYWORDS)
-    # queueUrlsVisited = utils.loadUrlsVisited(consts.ARQ_DATABASE)
-    # processQueue(begin)
-    # utils.exportDataBaseToXlsx(consts.ARQ_DATABASE) 
+    utils.initialize(queueUrlsToVisit)
+    keywordsList = utils.loadFileLikeArray(consts.ARQ_KEYWORDS)
+    queueUrlsVisited = utils.loadUrlsVisited(consts.ARQ_DATABASE)
+    processQueue(counter)
+    utils.exportDataBaseToXlsx(consts.ARQ_DATABASE) 
     utils.countKeyWordsFrmDB() 
     utils.madeCloudOfWords()
