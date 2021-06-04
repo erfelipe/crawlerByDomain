@@ -9,6 +9,8 @@ In this project, the difference of this crawler in relation to others is its abi
 
 An outline of how this software works can be seen in the figure below, where the main processes for its operation can be seen.
 
+<img src="/img/Esquema.Homeopatia-Pt-br.png" alt="Schema CrawlerByDomain">
+
 The main feature is the use of controlled vocabulary in the process of capturing web pages, in order to filter information that contains the theme of the study, eliminating hours of human evaluation.
 
 <i>In the beginning for its functioning, the files must be configured:</i>
