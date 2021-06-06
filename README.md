@@ -21,6 +21,7 @@ The main feature is the use of *controlled vocabulary* in the process of capturi
 ### B. You can limit how many pages should be visited in this iteration 
 - consts.py | The number of pages to be visited as a limit 
 > VISIT_LIMIT = 3000  
+
 Change the value for how many pages to visit in this run.
 
 ### C. To use it
