@@ -1,5 +1,5 @@
 # crawlerByDomain
-Web Crawler based in keywords domain subject
+## Web Crawler based in keywords domain subject
 
 This project was created to allow the analysis of data (web pages) in a specific context.
 
@@ -11,28 +11,34 @@ An outline of how this software works can be seen in the figure below, where the
 
 <img src="/img/Esquema.Homeopatia-us.jpg" alt="Schema CrawlerByDomain">
 
-The main feature is the use of controlled vocabulary in the process of capturing web pages, in order to filter information that contains the theme of the study, eliminating hours of human evaluation.
+The main feature is the use of *controlled vocabulary* in the process of capturing web pages, in order to filter information that contains the theme of the study, eliminating hours of human evaluation.
 
-<i>In the beginning for its functioning, the files must be configured:</i>
--urls-seeds.txt | Inform initial urls
--keywords.txt | Inform the keywords for page filtering
+*** In the beginning for its functioning, some files must be configured: ***
+### A. Files to define the desired theme:
+- urls-seeds.txt | Inform initial urls (*seeds*)
+- keywords.txt | Inform the keywords for page filtering
 
-In its first use, you can create new database (empty) and new output files (spreadsheets) answering the initial questions.
+### B. You can limit how many pages should be visited in this iteration 
+- consts.py | The number of pages to be visited as a limit
+VISIT_LIMIT = 3000 | Change the value for how many pages to visit in this run.
 
-The number of pages to be visited as a limit, in the <b>consts.py</b> file
-- VISIT_LIMIT = 3000 | Change the value for how many pages to visit in this run.
+### C. To use it
+To use the program, it is recommended to use a virtual environment (VENV) and use the following file:
+- crawDomain.py | The main file 
+To start, use: 
+> python crawDomain.py
 
-<i>As output, you can analyze the following files:</i>
+*In its first use, you can create new database (empty) and new output files (spreadsheets) answering the initial questions (Y/N). For continue jobs, choose N.*
 
+## As output, you can analyze the following files:
+```
 - data.sqlite | Database file [use DBeaver for open it]
 - quant_keys.xlsx | Report for count keywords
 - bd-result.xlsx | Report for pages and keys found
 - keywordsFromVocabulary.png | WordCloud image
+```
 
-To use the program, it is recommended to use a virtual environment (VENV) and use the following file:
--crawDomain.py | To start, use: python crawDomain.py
-
-Required libraries:
+## Required python libraries:
 - requests | https://pypi.org/project/requests/
 - urllib | https://pypi.org/project/urllib3/
 - sqlite3 | https://docs.python.org/3/library/sqlite3.html [native]
