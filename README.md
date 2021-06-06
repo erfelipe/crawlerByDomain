@@ -13,18 +13,20 @@ An outline of how this software works can be seen in the figure below, where the
 
 The main feature is the use of *controlled vocabulary* in the process of capturing web pages, in order to filter information that contains the theme of the study, eliminating hours of human evaluation.
 
-*** In the beginning for its functioning, some files must be configured: ***
+**In the beginning for its functioning, some files must be configured:**
 ### A. Files to define the desired theme:
 - urls-seeds.txt | Inform initial urls (*seeds*)
 - keywords.txt | Inform the keywords for page filtering
 
 ### B. You can limit how many pages should be visited in this iteration 
-- consts.py | The number of pages to be visited as a limit
-VISIT_LIMIT = 3000 | Change the value for how many pages to visit in this run.
+- consts.py | The number of pages to be visited as a limit 
+> VISIT_LIMIT = 3000  
+Change the value for how many pages to visit in this run.
 
 ### C. To use it
 To use the program, it is recommended to use a virtual environment (VENV) and use the following file:
 - crawDomain.py | The main file 
+
 To start, use: 
 > python crawDomain.py
 
