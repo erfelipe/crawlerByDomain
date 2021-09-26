@@ -63,16 +63,13 @@ def processUrl(url):
         allUrls = utils.allUrlsFromDocument(page) 
         # allUrls = utils.allUrlsFromPage(page)
         if (len(keywordsFound) > 0): 
-            print(colors.bcolors.OKGREEN + "@ URL adicionada: ", url + colors.bcolors.ENDC) 
+            print(colors.bcolors.OKGREEN + "@@ URL added: ", url + colors.bcolors.ENDC) 
             utils.insertDataInDB(url, page, keywordsFound) 
         else:
-            print(colors.bcolors.FAIL + "# URL sem keywords: ", url + colors.bcolors.ENDC) 
+            print(colors.bcolors.FAIL + "# URL without keywords: ", url + colors.bcolors.ENDC) 
     else: 
-        print(colors.bcolors.OKCYAN + "* URL já visitada: ", url + colors.bcolors.ENDC) 
-    # se tiver keywords:
-    # - lista todas as urls e cadastra na fila a visitar
-    # - armazena: url, conteudo, quais keyswords foram encontradas
-    # - coloca endereco na fila de visitadas
+        print(colors.bcolors.OKCYAN + "* URL already visited: ", url + colors.bcolors.ENDC) 
+
     queueUrlsVisited.append(url)
     addUrlsToVisit(allUrls)
     allUrls.clear()

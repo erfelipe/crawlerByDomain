@@ -10,5 +10,5 @@ ARQ_XLSQUANTKEYS = "quant_keys.xlsx"
 ARQ_TXTFORCLOUD = "keys-for-cloud.txt" 
 
 # Const
-VISIT_LIMIT = 3000
+VISIT_LIMIT = 1000
 

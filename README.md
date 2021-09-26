@@ -19,7 +19,7 @@ The main feature is the use of *controlled vocabulary* in the process of capturi
 - keywords.txt | Inform the keywords for page filtering
 
 ### B. You can limit how many pages should be visited in this iteration 
-- consts.py | The number of pages to be visited as a limit 
+- consts.py | File of configuration's options for files and consts 
 > VISIT_LIMIT = 3000  
 
 Change the value for how many pages to visit in this run.
