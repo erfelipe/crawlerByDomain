@@ -169,6 +169,11 @@ def saveUrlsVisited(urls):
         for url in urls:
             f.write(str(url) +"\n")
 
+def saveUrlsSearchers(urls):
+    with open(consts.ARQ_SEEDS_FROM_SEARCHERS, "a") as f:
+        for url in urls:
+            f.write(str(url) +"\n")
+
 def saveQueueToVisit(urls):
     with open(consts.ARQ_URLSTOVISIT, "w") as f:
         while (not urls.empty()):
