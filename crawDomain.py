@@ -87,7 +87,7 @@ def processQueue(counter):
             print(colors.bcolors.WARNING + "% Arquivo inválido: " + url + colors.bcolors.ENDC) 
     utils.saveQueueToVisit(queueUrlsToVisit)
     utils.saveUrlsVisited(queueUrlsVisited) 
-
+    
 if __name__ == "__main__":
     utils.initialize(queueUrlsToVisit, keywordsList, queueUrlsVisited)
 
