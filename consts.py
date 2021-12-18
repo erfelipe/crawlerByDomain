@@ -9,6 +9,7 @@ ARQ_DATABASE = "data.sqlite"
 ARQ_XLSRESULT = "bd-result.xlsx"
 ARQ_XLSQUANTKEYS = "quant_keys.xlsx"
 ARQ_TXTFORCLOUD = "keys-for-cloud.txt" 
+ARQ_BLACKLISTDOMAIN = "black-list-domain.txt"
 
 # Const
 VISIT_LIMIT = 1000

@@ -13,6 +13,7 @@ from openpyxl import Workbook
 
 keywords = []
 caracteresAcentuados = ["á", "à", "ã", "é", "í", "ô", "ç"]
+blackListDomains = []
 
 def dropDataBase():
     if (os.path.exists(consts.ARQ_DATABASE)):
@@ -90,12 +91,26 @@ def fillKeywords():
     for l in listaMinuscula:
         keywords.append(l)
 
+def fillBlackListDomains():
+    lista = open(consts.ARQ_BLACKLISTDOMAIN, 'r').read().splitlines()
+    listaMinuscula = [x.lower().strip() for x in lista] 
+    for l in listaMinuscula:
+        blackListDomains.append(l) 
+
 def fillQueueWithSeeds(queueUrlsVisitar):
     seeds = loadFileLikeArray(consts.ARQ_SEEDS)
     for seed in seeds:
         queueUrlsVisitar.put(seed)
 
-def initialize(queueUrlsVisitar):
+def initialize(queueUrlsVisitar, keywordsList, queueUrlsVisited):
+    initBD()
+    fillKeywords() 
+    fillBlackListDomains()
+    initQueueToVisit(queueUrlsVisitar)
+    initkeywordsList(keywordsList)
+    initQueueUrlsVisited(queueUrlsVisited)
+
+def initBD():
     newDB = input("Create a new Dabatabase for this process? (Y/N)").lower()
     if (newDB == 'y'):
         dropDataBase()
@@ -114,8 +129,6 @@ def initialize(queueUrlsVisitar):
             os.remove("urls-visited.txt")
         if (os.path.exists("keys-for-cloud.txt")):
             os.remove("keys-for-cloud.txt")
-    fillKeywords() 
-    initQueueToVisit(queueUrlsVisitar)
 
 def textNoAccent(texto):
     text = unicodedata.normalize('NFD', texto)\
@@ -167,18 +180,18 @@ def isFileValid(url):
 def saveUrlsVisited(urls):
     with open(consts.ARQ_URLSVISITED, "w") as f:
         for url in urls:
-            f.write(str(url) +"\n")
+            f.write(url +"\n")
 
 def saveUrlsSearchers(urls):
     with open(consts.ARQ_SEEDS_FROM_SEARCHERS, "a") as f:
         for url in urls:
-            f.write(str(url) +"\n")
+            f.write(url +"\n")
 
 def saveQueueToVisit(urls):
     with open(consts.ARQ_URLSTOVISIT, "w") as f:
         while (not urls.empty()):
             link = urls.get()
-            f.write(str(link) +"\n")
+            f.write(link +"\n")
 
 def loadQueueToVisit():
     resp = []
@@ -195,6 +208,16 @@ def initQueueToVisit(queueUrlsVisitar):
             queueUrlsVisitar.put(l)
     else:
         fillQueueWithSeeds(queueUrlsVisitar)
+
+def initkeywordsList(keywordsList: list):
+    keywords = loadFileLikeArray(consts.ARQ_KEYWORDS)
+    for k in keywords:
+        keywordsList.append(k)
+
+def initQueueUrlsVisited(queueUrlsVisited: list):
+    urls = loadUrlsVisited(consts.ARQ_DATABASE)
+    for u in urls:
+        queueUrlsVisited.append(u)
 
 def extractMetaFromPage(page):
     metas = {}
@@ -252,6 +275,13 @@ def allUrlsFromPage(page):
     for link in soup.find_all('a'):
         links.append(link.get('href'))
     return links
+
+
+def urlInBlackList(url):
+    for domain in blackListDomains:
+        if (domain in url):
+            return True
+    return False
 
 def exportDataBaseToXlsx(BD):
     wb = Workbook() 

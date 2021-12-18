@@ -57,7 +57,7 @@ def processUrl(url):
     """ 
     allUrls = []
     keywordsFound = []
-    if (urlNotVisited(url)):
+    if (urlNotVisited(url) and not(utils.urlInBlackList(url))):
         page = contentFromUrl(url)
         keywordsFound = (keyswordsInDocument(page))
         allUrls = utils.allUrlsFromDocument(page) 
@@ -89,9 +89,8 @@ def processQueue(counter):
     utils.saveUrlsVisited(queueUrlsVisited) 
 
 if __name__ == "__main__":
-    utils.initialize(queueUrlsToVisit)
-    keywordsList = utils.loadFileLikeArray(consts.ARQ_KEYWORDS)
-    queueUrlsVisited = utils.loadUrlsVisited(consts.ARQ_DATABASE)
+    utils.initialize(queueUrlsToVisit, keywordsList, queueUrlsVisited)
+
     processQueue(counter)
     utils.exportDataBaseToXlsx(consts.ARQ_DATABASE) 
     utils.countKeyWordsFrmDB() 
