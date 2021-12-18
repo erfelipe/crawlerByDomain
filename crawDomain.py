@@ -95,4 +95,4 @@ if __name__ == "__main__":
     processQueue(counter)
     utils.exportDataBaseToXlsx(consts.ARQ_DATABASE) 
     utils.countKeyWordsFrmDB() 
-    utils.madeCloudOfWords()
+    utils.madeCloudOfWords() 
