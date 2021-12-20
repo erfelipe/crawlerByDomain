@@ -2,16 +2,16 @@
 from genericpath import exists
 from sqlite3.dbapi2 import Error
 from urllib.parse import urlparse
-import crawDomain as craw 
-import consts
-import sqlite3
-import unicodedata 
-import os
 from wordcloud import WordCloud 
 from bs4 import BeautifulSoup
 from urlextract import URLExtract 
 from openpyxl import Workbook 
 from datetime import datetime, timezone
+import crawDomain as craw 
+import consts
+import sqlite3
+import unicodedata 
+import os
 
 keywords = []
 caracteresAcentuados = ["á", "à", "ã", "é", "í", "ô", "ç"]
