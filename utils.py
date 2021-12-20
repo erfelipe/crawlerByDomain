@@ -1,5 +1,6 @@
 # from sqlite3.dbapi2 import Cursor
 from genericpath import exists
+from sqlite3.dbapi2 import Error
 from urllib.parse import urlparse
 import crawDomain as craw 
 import consts
@@ -10,14 +11,16 @@ from wordcloud import WordCloud
 from bs4 import BeautifulSoup
 from urlextract import URLExtract 
 from openpyxl import Workbook 
+from datetime import datetime, timezone
 
 keywords = []
 caracteresAcentuados = ["á", "à", "ã", "é", "í", "ô", "ç"]
 blackListDomains = []
 
-def dropDataBase():
-    if (os.path.exists(consts.ARQ_DATABASE)):
-        os.remove(consts.ARQ_DATABASE)
+def dropFile(arq):
+    if (os.path.exists(arq)):
+        print("Deleting file!... " + arq)
+        os.remove(arq)
 
 def createDataBase():
     conn = sqlite3.connect(consts.ARQ_DATABASE) 
@@ -34,6 +37,14 @@ def createDataBase():
                         langFromPage text, 
                         descFromPage text, 
                         authorFromPage text)
+                    """) 
+    conn.commit() 
+    cursor.execute("""  CREATE TABLE if not exists counters (
+                        id integer primary key autoincrement,
+                        pagesVisited integer,
+                        validDomains integer,
+                        stamp datetime
+                        )
                     """) 
     conn.commit() 
     conn.close() 
@@ -55,6 +66,14 @@ def insertDataInDB(url, page, keywordsFound):
     cursor.execute("""  INSERT INTO crawlerByDomain (domain, url, page, keys, quantkeys, titleFromPage, keysFromPage, langFromPage, descFromPage, authorFromPage) 
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ? ) """, (domain, url, page, keys, quantk, titleFromPage, keysFromPage, langFromPage, descFromPage, authorFromPage,))
     conn.commit()
+    conn.close() 
+
+def insertQuantsInDB(pagesVisited, validDomains):
+    conn = sqlite3.connect(consts.ARQ_DATABASE) 
+    cursor = conn.cursor() 
+    dtime = datetime.now().strftime("%B %d, %Y %I:%M%p")
+    cursor.execute("""  INSERT INTO counters(pagesVisited, validDomains, stamp) VALUES(?, ?, ?) """, (pagesVisited, validDomains, dtime,) )
+    conn.commit() 
     conn.close() 
 
 def cleanFinalFiles(): 
@@ -111,9 +130,9 @@ def initialize(queueUrlsVisitar, keywordsList, queueUrlsVisited):
     initQueueUrlsVisited(queueUrlsVisited)
 
 def initBD():
-    newDB = input("Create a new Dabatabase for this process? (Y/N)").lower()
+    newDB = input("Create a new Dabatabase for this process? (y/n)").lower()
     if (newDB == 'y'):
-        dropDataBase()
+        dropFile(consts.ARQ_DATABASE)
         createDataBase()
     newResultFiles = input("Create a new result files for analysis for this process? (Y/N)").lower()
     if (newResultFiles == 'y'):
@@ -150,6 +169,26 @@ def loadFileLikeArray(arq):
                 listaMinuscula.append(textNoAccent(item.lower()))
     return set(listaMinuscula)
 
+def urlNotVisited(url, queueUrlsVisited):
+    return url not in queueUrlsVisited
+
+def keyswordsInDocument(data, keywordsList):
+    keys = []
+    for k in keywordsList:
+        if k in data:
+            keys.append(k)
+    return keys
+
+def isDataText(header): 
+    try:
+        cabecalho = header['content-type']
+        if ('ASCII'.lower() in cabecalho.lower()) or ('ANSI'.lower() in cabecalho.lower()) or ('8859'.lower() in cabecalho.lower()) or ('UTF'.lower() in cabecalho.lower()) or ('text'.lower() in cabecalho.lower()) or ('html'.lower() in cabecalho.lower()) :
+            return True
+        else:
+            return False
+    except:
+        return False
+
 def urlWellFormat(url):
     try:
         result = urlparse(url)
@@ -157,49 +196,73 @@ def urlWellFormat(url):
     except:
         return False
 
-def loadUrlsVisited(BD):
-    conn = sqlite3.connect(BD) 
-    cursor = conn.cursor() 
-    cursor.execute("""  select cbd.url 
-                        from crawlerByDomain cbd  
-                    """)
-    result = cursor.fetchall()
+def loadUrlsVisited():
     urls = []
-    for address in result: 
-        urls.append(address) 
-    conn.commit()
-    conn.close() 
+    urlFromDB = loadUrlsVisitedFromDB() 
+    urlFromFile = loadUrlsVisitedFromFile() 
+    for url in urlFromDB:
+        urls.append(url)
+    for url in urlFromFile:
+        urls.append(url)    
     return urls
+
+def loadUrlsVisitedFromDB():
+    print("Loading urls from DB: " + consts.ARQ_DATABASE)
+    try:
+        conn = sqlite3.connect(consts.ARQ_DATABASE) 
+    except Error:
+        print(Error)
+    cursor = conn.cursor() 
+    cursor.execute("SELECT url FROM crawlerByDomain")
+    result = cursor.fetchall()
+    conn.close() 
+
+    resp = []
+    for url in result: 
+        resp.append(url) 
+    return resp
+
+def loadUrlsVisitedFromFile():
+    print("Loading urls visited: " + consts.ARQ_URLSVISITED)
+    return loadArrayFromFile(consts.ARQ_URLSVISITED)
 
 def getDomainFromURL(url):
     return urlparse(url).netloc
     
 def isFileValid(url):
-    return ( (url.rfind('.js') == -1) and (url.rfind('.jpg') == -1) and (url.rfind('.jpeg') == -1) and (url.rfind('.png') == -1) and (url.rfind('.css') == -1) and (url.rfind('.gif') == -1) and (url.rfind('.mp4') == -1) and (url.rfind('.ico') == -1) and (url.rfind('.svg') == -1))
+    return ( (url.rfind('.js') == -1) and (url.rfind('.jpg') == -1) and (url.rfind('.jpeg') == -1) and (url.rfind('.png') == -1) and (url.rfind('.css') == -1) and (url.rfind('.gif') == -1) and (url.rfind('.mp4') == -1) and (url.rfind('.ico') == -1) and (url.rfind('.svg') == -1) and (url.rfind('.pdf') == -1) and (url.rfind('.woff') == -1) and (url.rfind('.woff2') == -1) )
 
 def saveUrlsVisited(urls):
+    dropFile(consts.ARQ_URLSVISITED)
+    print("Saving urls visited file: " + consts.ARQ_URLSVISITED)
     with open(consts.ARQ_URLSVISITED, "w") as f:
         for url in urls:
-            f.write(url +"\n")
+            f.write(str(url) +"\n")
 
 def saveUrlsSearchers(urls):
+    print("Saving urls searchers file: " + consts.ARQ_SEEDS_FROM_SEARCHERS)
     with open(consts.ARQ_SEEDS_FROM_SEARCHERS, "a") as f:
         for url in urls:
-            f.write(url +"\n")
+            f.write(str(url) +"\n")
 
 def saveQueueToVisit(urls):
+    dropFile(consts.ARQ_URLSTOVISIT)
+    print("Saving queue to visit file: " + consts.ARQ_SEEDS_FROM_SEARCHERS)
     with open(consts.ARQ_URLSTOVISIT, "w") as f:
         while (not urls.empty()):
             link = urls.get()
-            f.write(link +"\n")
+            f.write(str(link) +"\n")
 
-def loadQueueToVisit():
+def loadArrayFromFile(arq):
     resp = []
-    if (os.path.exists(consts.ARQ_URLSTOVISIT)):
-        with open(consts.ARQ_URLSTOVISIT, "r") as f:
+    if (os.path.exists(arq)):
+        with open(arq, "r") as f:
             for line in f:
                 resp.append(line.strip())
     return resp
+
+def loadQueueToVisit():
+    return loadArrayFromFile(consts.ARQ_URLSTOVISIT)
 
 def initQueueToVisit(queueUrlsVisitar):
     links = loadQueueToVisit()
@@ -215,7 +278,7 @@ def initkeywordsList(keywordsList: list):
         keywordsList.append(k)
 
 def initQueueUrlsVisited(queueUrlsVisited: list):
-    urls = loadUrlsVisited(consts.ARQ_DATABASE)
+    urls = loadUrlsVisited()
     for u in urls:
         queueUrlsVisited.append(u)
 
@@ -276,19 +339,18 @@ def allUrlsFromPage(page):
         links.append(link.get('href'))
     return links
 
-
 def urlInBlackList(url):
     for domain in blackListDomains:
         if (domain in url):
             return True
     return False
 
-def exportDataBaseToXlsx(BD):
+def exportDataBaseToXlsx():
     wb = Workbook() 
     ws0 = wb.active 
     ws0.title = 'Craw-Homeopatia' 
 
-    conn = sqlite3.connect(BD) 
+    conn = sqlite3.connect(consts.ARQ_DATABASE) 
     cursor = conn.cursor() 
     cursor.execute("""  select *
                         from crawlerByDomain cbd  
