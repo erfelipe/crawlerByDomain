@@ -12,5 +12,5 @@ ARQ_TXTFORCLOUD = "keys-for-cloud.txt"
 ARQ_BLACKLISTDOMAIN = "black-list-domain.txt"
 
 # Const
-VISIT_LIMIT = 2000
+VISIT_LIMIT = 1000
 RECORD_EACH = 200

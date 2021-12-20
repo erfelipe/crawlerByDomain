@@ -8,7 +8,6 @@ import validators
 
 pagesVisited = 0
 validDomains = 0
-keywordsList = []
 queueUrlsVisited = []
 queueUrlsToVisit = queue.Queue() 
 
@@ -42,7 +41,7 @@ def processUrl(url):
     keywordsFound = []
     if (utils.urlNotVisited(url, queueUrlsVisited) and not(utils.urlInBlackList(url))):
         page = contentFromUrl(url)
-        keywordsFound = (utils.keyswordsInDocument(page, keywordsList))
+        keywordsFound = (utils.keyswordsInDocument(page))
         allUrls = utils.allUrlsFromDocument(page) 
         # allUrls = utils.allUrlsFromPage(page)
         if (len(keywordsFound) > 0): 
@@ -79,7 +78,7 @@ def processQueue():
 
 if __name__ == "__main__":
     urllib3.disable_warnings()
-    utils.initialize(queueUrlsToVisit, keywordsList, queueUrlsVisited)
+    utils.initialize(queueUrlsToVisit, queueUrlsVisited, pagesVisited, validDomains)
     processQueue()
     # utils.exportDataBaseToXlsx() 
     # utils.countKeyWordsFrmDB() 

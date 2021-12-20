@@ -16,6 +16,7 @@ import os
 keywords = []
 caracteresAcentuados = ["á", "à", "ã", "é", "í", "ô", "ç"]
 blackListDomains = []
+keywordsList = []
 
 def dropFile(arq):
     if (os.path.exists(arq)):
@@ -29,14 +30,15 @@ def createDataBase():
                         id integer primary key autoincrement,
                         domain text, 
                         url text not null,
-                        page text not null,
+                        page text,
                         keys text not null,
                         quantkeys integer not null, 
                         titleFromPage text, 
                         keysFromPage text, 
                         langFromPage text, 
                         descFromPage text, 
-                        authorFromPage text)
+                        authorFromPage text,
+                        timestamp datetime default CURRENT_TIMESTAMP)
                     """) 
     conn.commit() 
     cursor.execute("""  CREATE TABLE if not exists counters (
@@ -64,7 +66,7 @@ def insertDataInDB(url, page, keywordsFound):
     conn = sqlite3.connect(consts.ARQ_DATABASE) 
     cursor = conn.cursor() 
     cursor.execute("""  INSERT INTO crawlerByDomain (domain, url, page, keys, quantkeys, titleFromPage, keysFromPage, langFromPage, descFromPage, authorFromPage) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ? ) """, (domain, url, page, keys, quantk, titleFromPage, keysFromPage, langFromPage, descFromPage, authorFromPage,))
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ? ) """, (domain, url, url, keys, quantk, titleFromPage, keysFromPage, langFromPage, descFromPage, authorFromPage,))
     conn.commit()
     conn.close() 
 
@@ -121,20 +123,31 @@ def fillQueueWithSeeds(queueUrlsVisitar):
     for seed in seeds:
         queueUrlsVisitar.put(seed)
 
-def initialize(queueUrlsVisitar, keywordsList, queueUrlsVisited):
-    initBD()
+def initConstPages(pagesVisited, validDomains):
+    conn = sqlite3.connect(consts.ARQ_DATABASE) 
+    cursor = conn.cursor() 
+    cursor.execute(" select max(pagesVisited), validDomains from counters; ")
+    result = cursor.fetchone()
+    conn.close() 
+    pagesVisited = result[0] 
+    validDomains = result[1] 
+    print("Visited pages: " + str(pagesVisited) + " Domains recorded: " + str(validDomains)) 
+
+def initialize(queueUrlsVisitar, queueUrlsVisited, pagesVisited, validDomains):
+    initBD() 
     fillKeywords() 
-    fillBlackListDomains()
-    initQueueToVisit(queueUrlsVisitar)
-    initkeywordsList(keywordsList)
-    initQueueUrlsVisited(queueUrlsVisited)
+    fillBlackListDomains() 
+    initkeywordsList() 
+    initQueueToVisit(queueUrlsVisitar) 
+    initQueueUrlsVisited(queueUrlsVisited) 
+    initConstPages(pagesVisited, validDomains)
 
 def initBD():
     newDB = input("Create a new Dabatabase for this process? (y/n)").lower()
     if (newDB == 'y'):
         dropFile(consts.ARQ_DATABASE)
         createDataBase()
-    newResultFiles = input("Create a new result files for analysis for this process? (Y/N)").lower()
+    newResultFiles = input("Create a new result files for analysis for this process? (y/n)").lower()
     if (newResultFiles == 'y'):
         if (os.path.exists("quant_keys.xlsx")):
             os.remove("quant_keys.xlsx")
@@ -172,7 +185,7 @@ def loadFileLikeArray(arq):
 def urlNotVisited(url, queueUrlsVisited):
     return url not in queueUrlsVisited
 
-def keyswordsInDocument(data, keywordsList):
+def keyswordsInDocument(data):
     keys = []
     for k in keywordsList:
         if k in data:
@@ -272,7 +285,7 @@ def initQueueToVisit(queueUrlsVisitar):
     else:
         fillQueueWithSeeds(queueUrlsVisitar)
 
-def initkeywordsList(keywordsList: list):
+def initkeywordsList():
     keywords = loadFileLikeArray(consts.ARQ_KEYWORDS)
     for k in keywords:
         keywordsList.append(k)
@@ -356,7 +369,6 @@ def exportDataBaseToXlsx():
                         from crawlerByDomain cbd  
                     """)
     result = cursor.fetchall()
-    conn.commit()
     conn.close() 
     ws0.append(["id", "domain", "url", "page", "keys", "quantkeys", "titleFromPage", "keysFromPage", "langFromPage", "descFromPage", "authorFromPage"])
     for line in result: 
