@@ -18,11 +18,12 @@ The main feature is the use of *controlled vocabulary* in the process of capturi
 - urls-seeds.txt | Inform initial urls (*seeds*)
 - keywords.txt | Inform the keywords for page filtering
 
-### B. You can limit how many pages should be visited in this iteration 
+### B. You can limit how many pages should be colected in this iteration 
 - consts.py | File of configuration's options for files and consts 
-> VISIT_LIMIT = 3000  
+> VISIT_LIMIT = 1000 | Number of urls to be colect in this job
+> RECORD_EACH = 200 | Number of partial record in database for each achivement 
 
-Change the value for how many pages to visit in this run.
+Change the value for how many pages to colect in this run.
 
 ### C. To use it
 To use the program, it is recommended to use a virtual environment (VENV) and use the following file:
@@ -35,13 +36,18 @@ To start, use:
 
 ## As output, you can analyze the following files:
 ```
-- data.sqlite | Database file [use DBeaver for open it]
-- quant_keys.xlsx | Report for count keywords
-- bd-result.xlsx | Report for pages and keys found
-- keywordsFromVocabulary.png | WordCloud image
+- data.sqlite | Database file [use DBeaver app for open it]
 ```
 
-## Required python libraries:
+## Other utilities are available
+> python utils.countKeyWordsFromDB.py
+- quant_keys.xlsx | Report for count keywords
+> python utils.exportDBtoXLS.py
+- bd-result.xlsx | Report for pages and keys found
+> python utils.madeCloudOfWords.py
+- keywordsFromVocabulary.png | WordCloud image
+
+## Required python libraries (install with pip):
 - requests | https://pypi.org/project/requests/
 - urllib | https://pypi.org/project/urllib3/
 - sqlite3 | https://docs.python.org/3/library/sqlite3.html [native]
@@ -49,3 +55,5 @@ To start, use:
 - bs4 | https://pypi.org/project/beautifulsoup4/
 - urlextract | https://pypi.org/project/urlextract/
 - openpyxl | https://pypi.org/project/openpyxl/
+
+## Recommend using a Python virtual environment (VENV) 

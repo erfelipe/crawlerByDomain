@@ -80,7 +80,3 @@ if __name__ == "__main__":
     urllib3.disable_warnings()
     utils.initialize(queueUrlsToVisit, queueUrlsVisited, pagesVisited, validDomains)
     processQueue()
-    # utils.exportDataBaseToXlsx() 
-    # utils.countKeyWordsFrmDB() 
-    # utils.madeCloudOfWords() 
-
